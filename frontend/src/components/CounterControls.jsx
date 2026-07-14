@@ -8,6 +8,10 @@ function isNumericInput(value) {
 
 export default function CounterControls({ count, step, setStep, inc, dec, reset }) {
   const [confirmingReset, setConfirmingReset] = useState(false);
+  // step is only a valid, submittable number once the user has finished
+  // typing it — '' and '-' are transient in-progress states that must never
+  // reach postInc/postDec (they'd parseInt() to NaN on the backend).
+  const isValidStep = typeof step === 'number' && Number.isFinite(step);
 
   function handleStepChange(e) {
     const value = e.target.value;
@@ -36,7 +40,7 @@ export default function CounterControls({ count, step, setStep, inc, dec, reset 
       </div>
 
       <div>
-        <button onClick={dec}>-</button>
+        <button onClick={dec} disabled={!isValidStep}>-</button>
         <input
           type="text"
           inputMode="numeric"
@@ -44,7 +48,7 @@ export default function CounterControls({ count, step, setStep, inc, dec, reset 
           onChange={handleStepChange}
           style={{ width: 40 }}
         />
-        <button onClick={inc}>+</button>
+        <button onClick={inc} disabled={!isValidStep}>+</button>
       </div>
 
       <p className="note">
