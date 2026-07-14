@@ -1,0 +1,13 @@
+{
+  "name": "counter-backend",
+  "version": "0.0.1",
+  "description": "old counter backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4"
+  }
+}
