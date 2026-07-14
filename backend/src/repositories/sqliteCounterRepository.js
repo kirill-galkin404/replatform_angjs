@@ -50,11 +50,41 @@ class SqliteCounterRepository extends CounterRepository {
       var raw = fs.readFileSync(this.legacyDataFile, 'utf8');
       parsed = JSON.parse(raw);
     } catch (e) {
+      console.error('Failed to parse legacy data file ' + this.legacyDataFile + ', ignoring it', e);
       return false;
     }
 
-    var count = typeof parsed.count === 'number' ? parsed.count : 0;
-    var history = Array.isArray(parsed.history) ? parsed.history : [];
+    if (!parsed || typeof parsed !== 'object') {
+      console.error(
+        'Legacy data file ' + this.legacyDataFile + ' did not contain a JSON object, ignoring it'
+      );
+      return false;
+    }
+
+    var count = typeof parsed.count === 'number' && !isNaN(parsed.count) ? parsed.count : 0;
+    var rawHistory = Array.isArray(parsed.history) ? parsed.history : [];
+
+    // Only accept well-shaped entries - the history/state columns are
+    // NOT NULL, so anything malformed here must be dropped rather than fed
+    // into the insert (which would otherwise throw and abort the whole
+    // import, leaving data.json un-renamed and re-attempted on every boot).
+    var history = rawHistory.filter(function (entry) {
+      return (
+        entry &&
+        typeof entry.t === 'number' &&
+        typeof entry.op === 'string' &&
+        typeof entry.val === 'number'
+      );
+    });
+
+    if (history.length !== rawHistory.length) {
+      console.warn(
+        'Skipped ' +
+          (rawHistory.length - history.length) +
+          ' malformed history entry/entries in ' +
+          this.legacyDataFile
+      );
+    }
 
     var insertState = this.db.prepare('INSERT INTO counter_state (id, value) VALUES (1, ?)');
     var insertHistory = this.db.prepare(

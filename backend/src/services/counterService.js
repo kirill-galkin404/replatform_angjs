@@ -33,6 +33,11 @@ class CounterService {
 
   increment(by) {
     var delta = by === undefined || by === null ? 1 : parseInt(by, 10);
+    if (isNaN(delta)) {
+      var err = new Error('`by` must be a number');
+      err.status = 400;
+      return Promise.reject(err);
+    }
     var repository = this.repository;
     return this._enqueue(function () {
       return repository.applyMutation('inc', delta);
