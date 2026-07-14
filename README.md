@@ -1,27 +1,27 @@
 # replatform_angjs
 
-Намеренно «грязный» legacy-каунтер — подопытный для инструмента переписывания/рефакторинга кода.
+An intentionally "dirty" legacy counter — a test subject for a code rewriting/refactoring tool.
 
-## Стек (специально устаревший)
-- **frontend/** — AngularJS 1.2 (CDN) + jQuery, логика в контроллере, `.success()`, jQuery-DOM вперемешку с Angular.
-- **backend/** — Express 4, `var`, глобальный стейт, синхронный файловый «DB» (`data.json`), ручной CORS, ноль валидации/обработки ошибок.
+## Stack (deliberately outdated)
+- **frontend/** — AngularJS 1.2 (CDN) + jQuery, logic in the controller, `.success()`, jQuery DOM manipulation mixed with Angular.
+- **backend/** — Express 4, `var`, global state, synchronous file "DB" (`data.json`), manual CORS, zero validation/error handling.
 
-## Запуск
+## Running
 ```bash
-# бэкенд (порт 4000)
+# backend (port 4000)
 cd backend && npm install && npm start
 
-# фронтенд — открыть frontend/index.html в браузере
-# (или любой статик-сервер, напр. `npx http-server frontend`)
+# frontend — open frontend/index.html in a browser
+# (or any static server, e.g. `npx http-server frontend`)
 ```
 
-## Что тут «грязного» (места для улучшений)
-- Бэк: глобальные `count`/`history`, `readFileSync`/`writeFileSync` на каждый запрос, `parseInt` без проверки, магические строки, отсутствие роутеров/слоёв, `res.send(200)`.
-- Фронт: бизнес-логика в `$scope`, устаревший `$http().success()`, хардкод `API`, `loadHistory()` через jQuery мимо Angular, инлайновые стили, `confirm()`.
+## What's "dirty" here (room for improvement)
+- Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
+- Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
 
 ## API
-| Метод | Путь | Тело | Ответ |
-|-------|------|------|-------|
+| Method | Path | Body | Response |
+|--------|------|------|----------|
 | GET | `/count` | — | `{count}` |
 | POST | `/inc` | `{by?}` | `{count}` |
 | POST | `/dec` | — | `{count}` |
