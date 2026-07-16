@@ -81,10 +81,12 @@ function save() {
 }
 
 app.get('/count', function (req, res) {
+  console.log('GET /count');
   res.send({ count: count });
 });
 
 app.post('/inc', requireApiKeyMiddleware, function (req, res) {
+  console.log('POST /inc', { by: req.body.by });
   var by = req.body.by;
   if (by == undefined) {
     by = 1;
@@ -96,6 +98,7 @@ app.post('/inc', requireApiKeyMiddleware, function (req, res) {
 });
 
 app.post('/dec', requireApiKeyMiddleware, function (req, res) {
+  console.log('POST /dec');
   count = count - 1;
   history.push({ t: new Date().getTime(), op: 'dec', val: count });
   save();
@@ -103,6 +106,7 @@ app.post('/dec', requireApiKeyMiddleware, function (req, res) {
 });
 
 app.post('/reset', requireApiKeyMiddleware, function (req, res) {
+  console.log('POST /reset');
   count = 0;
   history.push({ t: new Date().getTime(), op: 'reset', val: 0 });
   save();
@@ -110,6 +114,7 @@ app.post('/reset', requireApiKeyMiddleware, function (req, res) {
 });
 
 app.get('/history', function (req, res) {
+  console.log('GET /history');
   res.send(history);
 });
 
