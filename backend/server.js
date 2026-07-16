@@ -60,7 +60,7 @@ var requireApiKey = process.env.REQUIRE_API_KEY === 'true';
 if (requireApiKey) {
   console.log('REQUIRE_API_KEY is enabled: mutation routes require a valid X-API-Key header');
   if (!process.env.API_KEY) {
-    console.error('REQUIRE_API_KEY is true but API_KEY is not set: all mutation requests will be rejected');
+    console.error('REQUIRE_API_KEY is true but API_KEY is not set: all mutation requests will be rejected, please set key');
   }
 } else {
   console.log('REQUIRE_API_KEY is disabled (default): mutation routes are not authenticated');
