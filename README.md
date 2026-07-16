@@ -15,6 +15,16 @@ cd backend && npm install && npm start
 # (or any static server, e.g. `npx http-server frontend`)
 ```
 
+### Environment variables
+
+| Var | Purpose | Default |
+|-----|---------|---------|
+| `CORS_ALLOWED_ORIGINS` | Comma-separated list of origins allowed to call the API (replaces the old wildcard CORS). | unset — no origins allowed |
+| `API_KEY` | Shared secret required in the `X-API-Key` header on mutation routes when `REQUIRE_API_KEY=true`. | unset |
+| `REQUIRE_API_KEY` | Set to `true` to require a valid `X-API-Key` header on `POST /inc`, `/dec`, `/reset`. `GET /count` and `GET /history` are never gated. | unset (disabled) |
+
+**Rollout note:** do **not** set `REQUIRE_API_KEY=true` in any environment that still serves the current AngularJS frontend (`frontend/app.js`) — it sends no custom headers today and its mutation calls would start failing with `401`. Only enable enforcement once the in-flight React/Vite re-platform of the frontend adds the `X-API-Key` header to its outgoing `POST` calls.
+
 ## What's "dirty" here (room for improvement)
 - Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
 - Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
