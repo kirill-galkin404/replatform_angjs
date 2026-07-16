@@ -2,6 +2,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var cors = require('cors');
+var crypto = require('crypto');
 var fs = require('fs');
 var app = express();
 
@@ -70,8 +71,27 @@ function requireApiKeyMiddleware(req, res, next) {
   if (!requireApiKey) {
     return next();
   }
-  if (!process.env.API_KEY || req.header('X-API-Key') !== process.env.API_KEY) {
+  var provided = req.header('X-API-Key') || '';
+  var expected = process.env.API_KEY || '';
+  var providedBuf = Buffer.from(provided);
+  var expectedBuf = Buffer.from(expected);
+  var valid = !!process.env.API_KEY &&
+    providedBuf.length === expectedBuf.length &&
+    crypto.timingSafeEqual(providedBuf, expectedBuf);
+  if (!valid) {
     return res.status(401).send({ error: 'unauthorized' });
+  }
+  next();
+}
+
+// Mutation routes only accept JSON bodies. This forces cross-origin callers
+// to send a Content-Type that triggers a CORS preflight (blocked by the
+// origin allowlist above) instead of being able to reach these routes as a
+// "simple" (non-preflighted) request, e.g. a cross-site HTML form post with
+// Content-Type: application/x-www-form-urlencoded or text/plain.
+function requireJsonContentType(req, res, next) {
+  if (!req.is('application/json')) {
+    return res.status(400).send({ error: 'Content-Type must be application/json' });
   }
   next();
 }
@@ -85,7 +105,7 @@ app.get('/count', function (req, res) {
   res.send({ count: count });
 });
 
-app.post('/inc', requireApiKeyMiddleware, function (req, res) {
+app.post('/inc', requireJsonContentType, requireApiKeyMiddleware, function (req, res) {
   console.log('POST /inc', { by: req.body.by });
   var by = req.body.by;
   if (by == undefined) {
@@ -97,7 +117,7 @@ app.post('/inc', requireApiKeyMiddleware, function (req, res) {
   res.send({ count: count });
 });
 
-app.post('/dec', requireApiKeyMiddleware, function (req, res) {
+app.post('/dec', requireJsonContentType, requireApiKeyMiddleware, function (req, res) {
   console.log('POST /dec');
   count = count - 1;
   history.push({ t: new Date().getTime(), op: 'dec', val: count });
@@ -105,7 +125,7 @@ app.post('/dec', requireApiKeyMiddleware, function (req, res) {
   res.send({ count: count });
 });
 
-app.post('/reset', requireApiKeyMiddleware, function (req, res) {
+app.post('/reset', requireJsonContentType, requireApiKeyMiddleware, function (req, res) {
   console.log('POST /reset');
   count = 0;
   history.push({ t: new Date().getTime(), op: 'reset', val: 0 });

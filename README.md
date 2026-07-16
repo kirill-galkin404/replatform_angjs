@@ -25,6 +25,8 @@ cd backend && npm install && npm start
 
 **Rollout note:** do **not** set `REQUIRE_API_KEY=true` in any environment that still serves the current AngularJS frontend (`frontend/app.js`) — it sends no custom headers today and its mutation calls would start failing with `401`. Only enable enforcement once the in-flight React/Vite re-platform of the frontend adds the `X-API-Key` header to its outgoing `POST` calls.
 
+**Note:** `POST /inc`, `/dec`, `/reset` only accept `Content-Type: application/json` (as the AngularJS frontend already sends). This forces cross-origin requests through a CORS preflight — governed by `CORS_ALLOWED_ORIGINS` — instead of allowing a non-preflighted "simple" request (e.g. a cross-site HTML form post) to reach these routes.
+
 ## What's "dirty" here (room for improvement)
 - Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
 - Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
