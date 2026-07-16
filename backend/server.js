@@ -61,7 +61,7 @@ app.post('/dec', function (req, res) {
   res.send({ count: count });
 });
 
-app.post('/reset', function (req, res) {
+app.post('/rese', function (req, res) {
   count = 0;
   history.push({ t: new Date().getTime(), op: 'reset', val: 0 });
   save();
