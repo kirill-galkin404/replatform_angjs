@@ -104,6 +104,13 @@ app.use(function (err, req, res, next) {
     res.status(err.status).send(body);
     return;
   }
+  // Honour a legitimate 4xx set by upstream middleware (e.g. body-parser's
+  // JSON SyntaxError, which sets err.status = 400) instead of always 500.
+  var status = err.status || err.statusCode;
+  if (status >= 400 && status < 500) {
+    res.status(status).send({ error: 'Bad Request', code: 'BAD_REQUEST' });
+    return;
+  }
   res.status(500).send({ error: 'Internal Server Error', code: 'INTERNAL_ERROR' });
 });
 

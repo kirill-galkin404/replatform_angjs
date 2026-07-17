@@ -42,3 +42,11 @@ test('validateStep(undefined, {required:true}) throws ValidationError', function
     validateStep(undefined, { required: true });
   }, ValidationError);
 });
+
+test('validateStep rejects non-number/non-string types instead of loosely coercing them', function () {
+  assert.throws(function () { validateStep([5]); }, ValidationError);
+  assert.throws(function () { validateStep([]); }, ValidationError);
+  assert.throws(function () { validateStep(true); }, ValidationError);
+  assert.throws(function () { validateStep(false); }, ValidationError);
+  assert.throws(function () { validateStep({}); }, ValidationError);
+});

@@ -32,11 +32,15 @@ function validateStep(value, options) {
     return DEFAULT_STEP;
   }
 
-  var num = typeof value === 'number' ? value : Number(value);
+  if (typeof value !== 'number' && typeof value !== 'string') {
+    throw new ValidationError('INVALID_STEP', 'by', '"by" must be a finite integer', 400);
+  }
 
   if (typeof value === 'string' && value.trim() === '') {
     throw new ValidationError('INVALID_STEP', 'by', '"by" must be a finite integer', 400);
   }
+
+  var num = typeof value === 'number' ? value : Number(value);
 
   if (typeof num !== 'number' || isNaN(num) || !isFinite(num)) {
     throw new ValidationError('INVALID_STEP', 'by', '"by" must be a finite integer', 400);
