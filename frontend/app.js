@@ -1,5 +1,5 @@
 // counter app
-var API = 'http://localhost:4000';
+var API = window.API_BASE_URL || 'http://localhost:4000';
 
 var app = angular.module('counterApp', []);
 

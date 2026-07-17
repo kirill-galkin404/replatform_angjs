@@ -89,6 +89,10 @@ app.get('/history', function (req, res) {
   res.send(history);
 });
 
+app.get('/healthz', function (req, res) {
+  res.status(200).send({ status: 'ok' });
+});
+
 // 404 handler - unmatched routes get a structured JSON body
 app.use(function (req, res) {
   res.status(404).send({ error: 'Not Found', code: 'NOT_FOUND' });
@@ -115,8 +119,9 @@ app.use(function (err, req, res, next) {
 });
 
 if (require.main === module) {
-  app.listen(4000, function () {
-    console.log('counter backend running on 4000');
+  var PORT = process.env.PORT || 4000;
+  app.listen(PORT, '0.0.0.0', function () {
+    console.log('counter backend running on ' + PORT);
   });
 }
 
