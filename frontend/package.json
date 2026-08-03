@@ -1,0 +1,14 @@
+{
+  "name": "counter-frontend",
+  "version": "0.0.1",
+  "description": "old counter frontend - AngularJS 1.2 + jQuery",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "angular": "1.2.28",
+    "angular-mocks": "1.2.28",
+    "jsdom": "^22.1.0"
+  }
+}
