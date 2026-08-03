@@ -50,3 +50,42 @@ test('validateStep rejects non-number/non-string types instead of loosely coerci
   assert.throws(function () { validateStep(false); }, ValidationError);
   assert.throws(function () { validateStep({}); }, ValidationError);
 });
+
+test('validateStep(1000000) and validateStep(-1000000) are accepted at the inclusive boundary', function () {
+  assert.strictEqual(validateStep(1000000), 1000000);
+  assert.strictEqual(validateStep(-1000000), -1000000);
+});
+
+test('validateStep(1000001) and validateStep(-1000001) throw STEP_OUT_OF_RANGE just past the boundary', function () {
+  assert.throws(function () {
+    validateStep(1000001);
+  }, function (err) { return err instanceof ValidationError && err.code === 'STEP_OUT_OF_RANGE'; });
+  assert.throws(function () {
+    validateStep(-1000001);
+  }, function (err) { return err instanceof ValidationError && err.code === 'STEP_OUT_OF_RANGE'; });
+});
+
+test('validateStep coerces numeric strings, including ones with surrounding whitespace', function () {
+  assert.strictEqual(validateStep('5'), 5);
+  assert.strictEqual(validateStep('  5  '), 5);
+});
+
+test('validateStep("5.5") and validateStep("") throw INVALID_STEP', function () {
+  assert.throws(function () {
+    validateStep('5.5');
+  }, function (err) { return err instanceof ValidationError && err.code === 'INVALID_STEP'; });
+  assert.throws(function () {
+    validateStep('');
+  }, function (err) { return err instanceof ValidationError && err.code === 'INVALID_STEP'; });
+});
+
+// NOTE: the required:true branch below is correct and exercised here directly,
+// but server.js's /inc, /dec and /reset handlers only ever call
+// validateStep(req.body.by) with no options object, so FIELD_REQUIRED is
+// currently unreachable through the live HTTP API - this test documents the
+// unit-level contract, not a reachable HTTP behaviour.
+test('validateStep(undefined, {required:true}) throws FIELD_REQUIRED (unreachable via server.js today)', function () {
+  assert.throws(function () {
+    validateStep(undefined, { required: true });
+  }, function (err) { return err instanceof ValidationError && err.code === 'FIELD_REQUIRED'; });
+});

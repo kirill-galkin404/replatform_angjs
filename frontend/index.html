@@ -27,10 +27,15 @@
 
   <div>
     <button ng-click="reset()">reset</button>
-    <button onclick="loadHistory()">show history</button>
+    <button ng-click="loadHistory()">show history</button>
   </div>
 
-  <div id="hist"></div>
+  <div id="hist">
+    <b>History:</b>
+    <ul>
+      <li ng-repeat="entry in history">{{entry.t | date:'mediumTime'}} - {{entry.op}} -> {{entry.val}}</li>
+    </ul>
+  </div>
 
 </body>
 </html>

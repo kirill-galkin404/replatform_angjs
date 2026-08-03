@@ -18,7 +18,7 @@ test('malformed JSON body on POST /inc is reported as a 4xx client error, not a 
     .post('/inc')
     .set('Content-Type', 'application/json')
     .send('{"by": not-valid-json');
-  assert.ok(res.status >= 400 && res.status < 500, 'expected a 4xx status, got ' + res.status);
+  assert.strictEqual(res.status, 400, 'expected exactly 400, got ' + res.status);
   assert.ok(res.body.error);
   assert.ok(res.body.code);
 });

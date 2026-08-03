@@ -18,3 +18,12 @@ test('a save()/fs failure is translated into a structured 5xx JSON response, not
   assert.ok(text.indexOf('.js:') === -1, 'response must not leak a stack trace');
   assert.ok(text.indexOf('at ') === -1, 'response must not leak a stack trace');
 });
+
+test('a save() failure does not leave in-memory count diverged from disk: GET /count is unchanged afterwards', async function () {
+  var before = await request(app).get('/count');
+  var failed = await request(app).post('/inc').send({ by: 7 });
+  assert.strictEqual(failed.status, 500);
+
+  var after = await request(app).get('/count');
+  assert.strictEqual(after.body.count, before.body.count, 'in-memory count must roll back when save() throws');
+});

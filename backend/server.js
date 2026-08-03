@@ -38,8 +38,17 @@ app.use(function (req, res, next) {
   }
 });
 
+// Writes to a temp file then renames into place, both synchronously, so a
+// crash/failure mid-write never leaves DB_FILE holding a partial/corrupt
+// write. Stays fully synchronous (no fs.promises) so the single-threaded
+// event loop keeps running each request's validate->mutate->save handler to
+// completion before the next one starts - that is what already makes
+// concurrent requests safe today, and introducing an async gap here would
+// break it rather than fix anything.
 function save() {
-  fs.writeFileSync(DB_FILE, JSON.stringify({ count: count, history: history }));
+  var tmpFile = DB_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, JSON.stringify({ count: count, history: history }));
+  fs.renameSync(tmpFile, DB_FILE);
 }
 
 app.get('/count', function (req, res) {
@@ -47,40 +56,52 @@ app.get('/count', function (req, res) {
 });
 
 app.post('/inc', function (req, res, next) {
+  var prevCount = count;
+  var prevHistory = history;
   try {
     var by = validateStep(req.body.by);
     count = count + by;
-    history.push({ t: new Date().getTime(), op: 'inc', val: count });
+    history = history.concat([{ t: new Date().getTime(), op: 'inc', val: count }]);
     save();
     res.send({ count: count });
   } catch (e) {
+    count = prevCount;
+    history = prevHistory;
     next(e);
   }
 });
 
 app.post('/dec', function (req, res, next) {
+  var prevCount = count;
+  var prevHistory = history;
   try {
     var by = validateStep(req.body.by);
     count = count - by;
-    history.push({ t: new Date().getTime(), op: 'dec', val: count });
+    history = history.concat([{ t: new Date().getTime(), op: 'dec', val: count }]);
     save();
     res.send({ count: count });
   } catch (e) {
+    count = prevCount;
+    history = prevHistory;
     next(e);
   }
 });
 
 app.post('/reset', function (req, res, next) {
+  var prevCount = count;
+  var prevHistory = history;
   try {
     var extraFields = Object.keys(req.body || {});
     if (extraFields.length > 0) {
       throw new ValidationError('UNEXPECTED_FIELD', extraFields[0], '/reset does not accept a request body', 400);
     }
     count = 0;
-    history.push({ t: new Date().getTime(), op: 'reset', val: 0 });
+    history = history.concat([{ t: new Date().getTime(), op: 'reset', val: 0 }]);
     save();
     res.send({ count: count });
   } catch (e) {
+    count = prevCount;
+    history = prevHistory;
     next(e);
   }
 });

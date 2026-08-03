@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MainCtrl history-refresh fixture</title>
+  <!--
+    MANUAL-ONLY CHECK - see frontend/test/README.md.
+
+    This fixture could not be run automatically in the execution environment:
+    outbound access to the CDNs it needs (ajax.googleapis.com for AngularJS,
+    and a CDN for the matching angular-mocks build) returned HTTP 403
+    (host not allowed) from this sandbox, the same restriction the plan's
+    audit already flagged from the planning sandbox. There is no vendored
+    copy of AngularJS 1.2.28 / angular-mocks anywhere in this repo or image,
+    and this project has no bundler (frontend/build.sh is copy-only), so
+    nothing here has been changed to work around that - the fixture is
+    exactly what would be needed if network access were available, and it
+    is meant to be opened directly in a browser with network access to
+    verify Phase 7 (history refresh after inc/dec/reset) manually.
+
+    Expected result when opened in a browser with CDN access:
+    the page prints "PASS" lines for each assertion, and "ALL PASS" at the
+    end. If opened against the pre-Phase-7 app.js (global loadHistory(),
+    no $scope.loadHistory, no post-mutation refresh), the assertions on
+    $scope.history after $scope.inc() fail, because history is never
+    refreshed automatically - only a manual loadHistory() click would
+    populate it, and even then $scope.history would never be set.
+  -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.28/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.28/angular-mocks.js"></script>
+  <script src="../app.js"></script>
+</head>
+<body>
+  <h1>MainCtrl history-refresh fixture (manual-only, see comment/README)</h1>
+  <pre id="output">running...</pre>
+
+  <script>
+    (function () {
+      var lines = [];
+      var failed = false;
+
+      function log(ok, msg) {
+        lines.push((ok ? 'PASS' : 'FAIL') + ' - ' + msg);
+        if (!ok) { failed = true; }
+      }
+
+      // app.js reads window.API_BASE_URL at load time; default is fine here.
+      var $httpBackend, $rootScope, $controller, scope;
+
+      angular.mock.module('counterApp');
+      angular.mock.inject(function (_$httpBackend_, _$rootScope_, _$controller_) {
+        $httpBackend = _$httpBackend_;
+        $rootScope = _$rootScope_;
+        $controller = _$controller_;
+      });
+
+      var API = window.API_BASE_URL || 'http://localhost:4000';
+
+      // Initial /count load that MainCtrl fires on instantiation.
+      $httpBackend.expectGET(API + '/count').respond({ count: 10 });
+
+      scope = $rootScope.$new();
+      var ctrl = $controller('MainCtrl', { $scope: scope });
+      $httpBackend.flush();
+
+      log(scope.count === 10, 'initial $scope.count is 10 from the stubbed /count response');
+
+      // Distinct fixture payloads: the /inc response is NOT the same shape
+      // as the /history response, so this fails if the fixture accidentally
+      // only reasserts the mutation's own POST body instead of a real
+      // subsequent /history fetch.
+      $httpBackend.expectPOST(API + '/inc').respond({ count: 11 });
+      $httpBackend.expectGET(API + '/history').respond([
+        { t: 111, op: 'inc', val: 11 },
+        { t: 222, op: 'dec', val: 10 },
+        { t: 333, op: 'inc', val: 11 }
+      ]);
+
+      scope.inc();
+      $httpBackend.flush();
+
+      log(scope.count === 11, '$scope.count reflects the /inc response (11)');
+      log(Array.isArray(scope.history) && scope.history.length === 3,
+        '$scope.history has 3 entries from the POST-mutation /history fetch (not left empty/stale)');
+      log(!!scope.history && scope.history[2] && scope.history[2].val === 11,
+        '$scope.history reflects the distinct /history fixture payload, proving a real refresh happened after inc()');
+
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+
+      lines.push(failed ? 'SOME FAILED' : 'ALL PASS');
+      document.getElementById('output').textContent = lines.join('\n');
+      // eslint-disable-next-line no-console
+      console.log(lines.join('\n'));
+    })();
+  </script>
+</body>
+</html>
