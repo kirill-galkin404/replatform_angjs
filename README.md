@@ -11,7 +11,7 @@ An intentionally "dirty" legacy counter — a test subject for a code rewriting/
 # backend (port 4000)
 cd backend && npm install && npm start
 
-# frontend-react (dev server, proxies to http://localhost:4000 by default)
+# frontend-react (dev server, talks directly to http://localhost:4000 by default via VITE_API_BASE_URL / CORS)
 cd frontend-react && npm install && npm run dev
 
 # frontend-react (production build)
