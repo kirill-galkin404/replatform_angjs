@@ -1,0 +1,33 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 50px;
+}
+
+#big {
+  font-size: 72px;
+  font-weight: bold;
+}
+
+button {
+  font-size: 20px;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.neg {
+  color: red;
+}
+
+#hist {
+  text-align: left;
+  width: 300px;
+  margin: 20px auto;
+}
+
+.error {
+  color: red;
+  max-width: 300px;
+  margin: 10px auto;
+}
