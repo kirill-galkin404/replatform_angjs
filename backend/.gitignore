@@ -1,2 +1,9 @@
 node_modules/
 data.json
+
+# .js files compiled in place from .ts sources by tsc (rootDir=outDir=.).
+# Generated on every `npm test`/`npm start` via the pretest/prestart hooks;
+# not checked in. Does not affect backend/test/*.js (hand-written, not
+# compiled from .ts, and one directory down).
+/*.js
+

@@ -1,1 +1,7 @@
+node_modules/
 dist/
+# Not committed: this is a freshly-scaffolded toolchain and the generated
+# lockfile is large relative to the app itself; `npm install` regenerates it
+# deterministically from package.json's pinned ranges. (Contrast with
+# backend/package-lock.json, which predates this migration and is kept.)
+package-lock.json

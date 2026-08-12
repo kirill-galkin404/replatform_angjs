@@ -1,27 +1,34 @@
 // shared validation helpers + structured error type
 
-function ValidationError(code, field, message, status) {
-  Error.call(this, message);
-  this.name = 'ValidationError';
-  this.message = message;
-  this.code = code;
-  this.field = field;
-  this.status = status || 400;
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ValidationError);
+export class ValidationError extends Error {
+  code: string;
+  field?: string;
+  status: number;
+
+  constructor(code: string, field: string | undefined, message: string, status?: number) {
+    super(message);
+    this.name = 'ValidationError';
+    this.code = code;
+    this.field = field;
+    this.status = status || 400;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ValidationError);
+    }
   }
 }
-ValidationError.prototype = Object.create(Error.prototype);
-ValidationError.prototype.constructor = ValidationError;
 
-var DEFAULT_STEP = 1;
-var MIN_STEP = -1000000;
-var MAX_STEP = 1000000;
+export const DEFAULT_STEP = 1;
+const MIN_STEP = -1000000;
+const MAX_STEP = 1000000;
+
+export interface ValidateStepOptions {
+  required?: boolean;
+}
 
 // Accepts only finite integers within [MIN_STEP, MAX_STEP].
 // Rejects NaN, Infinity, non-numeric strings and non-integer floats.
 // When value is undefined/null and required is false (default), returns DEFAULT_STEP.
-function validateStep(value, options) {
+export function validateStep(value: unknown, options?: ValidateStepOptions): number {
   var opts = options || {};
   var required = opts.required === true;
 
@@ -56,9 +63,3 @@ function validateStep(value, options) {
 
   return num;
 }
-
-module.exports = {
-  ValidationError: ValidationError,
-  validateStep: validateStep,
-  DEFAULT_STEP: DEFAULT_STEP
-};
