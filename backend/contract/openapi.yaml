@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: Counter backend API
+  version: 1.0.0
+  description: >
+    Locked contract for the counter backend. This spec documents the exact
+    request/response shapes produced by the current implementation
+    (including its quirks, e.g. the wildcard-CORS OPTIONS short-circuit and
+    the structured error envelope) and is used as an executable harness to
+    prove faithfulness across the TypeScript migration.
+servers:
+  - url: http://localhost:4000
+paths:
+  /count:
+    get:
+      operationId: getCount
+      summary: Return the current count.
+      responses:
+        '200':
+          description: Current count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+    options:
+      operationId: optionsCount
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+  /inc:
+    post:
+      operationId: incCount
+      summary: Increment the count by an optional step.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepRequest'
+      responses:
+        '200':
+          description: Count after increment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+        '400':
+          description: Validation error (e.g. non-integer "by").
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error (e.g. persistence failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      operationId: optionsInc
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+  /dec:
+    post:
+      operationId: decCount
+      summary: Decrement the count by an optional step.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepRequest'
+      responses:
+        '200':
+          description: Count after decrement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+        '400':
+          description: Validation error (e.g. non-integer "by").
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error (e.g. persistence failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      operationId: optionsDec
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+  /reset:
+    post:
+      operationId: resetCount
+      summary: Reset the count to zero. Does not accept a request body.
+      responses:
+        '200':
+          description: Count after reset (always 0).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+        '400':
+          description: Unexpected body field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      operationId: optionsReset
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+  /history:
+    get:
+      operationId: getHistory
+      summary: Return the full mutation history.
+      responses:
+        '200':
+          description: History entries in chronological order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+    options:
+      operationId: optionsHistory
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+  /healthz:
+    get:
+      operationId: getHealthz
+      summary: Liveness check.
+      responses:
+        '200':
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthzResponse'
+    options:
+      operationId: optionsHealthz
+      summary: CORS preflight short-circuit.
+      responses:
+        '200':
+          description: >
+            200 with a plain-text "OK" body, produced by Express's deprecated
+            res.send(200) "send status" form in the manual CORS middleware.
+components:
+  schemas:
+    CountResponse:
+      type: object
+      additionalProperties: false
+      required: [count]
+      properties:
+        count:
+          type: number
+    StepRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        by:
+          description: Optional step; coerced from numeric strings, defaults to 1 when absent.
+          type: [number, string]
+    HistoryEntry:
+      type: object
+      additionalProperties: false
+      required: [t, op, val]
+      properties:
+        t:
+          type: number
+        op:
+          type: string
+          enum: [inc, dec, reset]
+        val:
+          type: number
+    HistoryResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/HistoryEntry'
+    HealthzResponse:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        field:
+          type: string
+    NotFoundResponse:
+      type: object
+      additionalProperties: false
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          enum: ['Not Found']
+        code:
+          type: string
+          enum: ['NOT_FOUND']

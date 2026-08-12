@@ -27,3 +27,4 @@ cd backend && npm install && npm start
 | POST | `/dec` | — | `{count}` |
 | POST | `/reset` | — | `{count}` |
 | GET | `/history` | — | `[{t,op,val}]` |
+| GET | `/healthz` | — | `{status}` |
