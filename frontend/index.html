@@ -1,36 +1,12 @@
-<!DOCTYPE html>
-<html ng-app="counterApp">
-<head>
-  <meta charset="utf-8">
-  <title>Counter</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.28/angular.min.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-  <script src="env.js"></script>
-  <script src="app.js"></script>
-  <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
-    #big { font-size: 72px; font-weight: bold; }
-    button { font-size: 20px; padding: 10px 20px; margin: 5px; cursor: pointer; }
-    .neg { color: red; }
-    #hist { text-align: left; width: 300px; margin: 20px auto; }
-  </style>
-</head>
-<body ng-controller="MainCtrl">
-
-  <div id="big" ng-class="{neg: count < 0}">{{count}}</div>
-
-  <div>
-    <button ng-click="dec()">-</button>
-    <input type="text" ng-model="step" style="width:40px">
-    <button ng-click="inc()">+</button>
-  </div>
-
-  <div>
-    <button ng-click="reset()">reset</button>
-    <button onclick="loadHistory()">show history</button>
-  </div>
-
-  <div id="hist"></div>
-
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
