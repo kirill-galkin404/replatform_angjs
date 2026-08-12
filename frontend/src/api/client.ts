@@ -31,12 +31,15 @@ export function getCount(): Promise<CountResponse> {
   return request<CountResponse>('/count');
 }
 
-export function inc(by: number): Promise<CountResponse> {
+export function inc(by: number | string): Promise<CountResponse> {
   return request<CountResponse>('/inc', { method: 'POST', body: JSON.stringify({ by }) });
 }
 
-export function dec(by: number): Promise<CountResponse> {
-  return request<CountResponse>('/dec', { method: 'POST', body: JSON.stringify({ by }) });
+// The original AngularJS app's $scope.dec always POSTed an empty body,
+// never sending the step field - only increment ever honoured it. Preserved
+// verbatim: decrement always uses the server's default step (1).
+export function dec(): Promise<CountResponse> {
+  return request<CountResponse>('/dec', { method: 'POST', body: JSON.stringify({}) });
 }
 
 export function reset(): Promise<CountResponse> {

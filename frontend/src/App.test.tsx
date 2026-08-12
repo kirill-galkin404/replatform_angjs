@@ -39,20 +39,23 @@ describe('App', () => {
     );
   });
 
-  it('decrements when - is clicked', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn()
-        .mockReturnValueOnce(jsonResponse({ count: 5 }))
-        .mockReturnValueOnce(jsonResponse({ count: 4 }))
-    );
+  it('decrements when - is clicked, always ignoring the step field (matches the legacy AngularJS app)', async () => {
+    var fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(jsonResponse({ count: 5 }))
+      .mockReturnValueOnce(jsonResponse({ count: 4 }));
+    vi.stubGlobal('fetch', fetchMock);
     render(<App />);
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('5'));
 
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '9' } });
     fireEvent.click(screen.getByText('-'));
 
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('4'));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'http://api.example.test/dec',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({}) })
+    );
   });
 
   it('reset is gated on confirm() and does nothing when the user cancels', async () => {
@@ -82,6 +85,47 @@ describe('App', () => {
     fireEvent.click(screen.getByText('reset'));
 
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('0'));
+  });
+
+  it('forwards a non-numeric step to the backend as-is instead of silently coercing it to a default', async () => {
+    var fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(jsonResponse({ count: 0 }))
+      .mockReturnValueOnce(jsonResponse({ error: '"by" must be a finite integer', code: 'INVALID_STEP', field: 'by' }, 400));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('0'));
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'abc' } });
+    fireEvent.click(screen.getByText('+'));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('"by" must be a finite integer'));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'http://api.example.test/inc',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ by: 'abc' }) })
+    );
+    expect(screen.getByTestId('count')).toHaveTextContent('0');
+  });
+
+  it('clears a stale error banner once a later action succeeds', async () => {
+    var fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(jsonResponse({ count: 0 }))
+      .mockReturnValueOnce(jsonResponse({ error: '"by" must be a finite integer', code: 'INVALID_STEP', field: 'by' }, 400))
+      .mockReturnValueOnce(jsonResponse({ count: 1 }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('0'));
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'abc' } });
+    fireEvent.click(screen.getByText('+'));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '1' } });
+    fireEvent.click(screen.getByText('+'));
+
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('1'));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('renders history as templated list items (not raw innerHTML) after "show history"', async () => {
