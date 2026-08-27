@@ -11,8 +11,11 @@ An intentionally "dirty" legacy counter — a test subject for a code rewriting/
 # backend (port 4000)
 cd backend && npm install && npm start
 
-# frontend — open frontend/index.html in a browser
-# (or any static server, e.g. `npx http-server frontend`)
+# frontend (dev server with hot reload)
+cd frontend && npm install && npm run dev
+
+# frontend (production build, output in frontend/dist)
+cd frontend && npm install && npm run build
 ```
 
 ## What's "dirty" here (room for improvement)
@@ -24,6 +27,6 @@ cd backend && npm install && npm start
 |--------|------|------|----------|
 | GET | `/count` | — | `{count}` |
 | POST | `/inc` | `{by?}` | `{count}` |
-| POST | `/dec` | — | `{count}` |
+| POST | `/dec` | `{by?}` | `{count}` |
 | POST | `/reset` | — | `{count}` |
 | GET | `/history` | — | `[{t,op,val}]` |
