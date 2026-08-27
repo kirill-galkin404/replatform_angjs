@@ -77,4 +77,28 @@ describe('CounterControls', () => {
     fireEvent.click(screen.getByText('+'));
     await waitFor(() => expect(onError).toHaveBeenCalledWith(null));
   });
+
+  it('reports a client-side error and does not call the API when the step input is not a number', async () => {
+    vi.spyOn(counterClient, 'increment');
+    vi.spyOn(counterClient, 'decrement');
+    const onCountChange = vi.fn();
+    const onError = vi.fn();
+
+    render(<CounterControls onCountChange={onCountChange} onError={onError} />);
+
+    const stepInput = screen.getByRole('textbox');
+    fireEvent.change(stepInput, { target: { value: 'abc' } });
+    fireEvent.click(screen.getByText('+'));
+
+    await waitFor(() =>
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'INVALID_STEP', field: 'by' })
+      )
+    );
+    expect(counterClient.increment).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText('-'));
+    expect(counterClient.decrement).not.toHaveBeenCalled();
+    expect(onCountChange).not.toHaveBeenCalled();
+  });
 });

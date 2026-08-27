@@ -4,12 +4,17 @@ import { getHistory } from '../api/counterClient';
 // Replaces the jQuery loadHistory() global: fetched on demand via the API
 // client and rendered as a JSX list rather than raw DOM markup, matching
 // the previous "<time> - <op> -> <val>" output format.
-export default function History() {
+export default function History({ onError }) {
   const [entries, setEntries] = useState(null);
 
   async function handleShowHistory() {
-    const data = await getHistory();
-    setEntries(data);
+    try {
+      const data = await getHistory();
+      setEntries(data);
+      onError(null);
+    } catch (err) {
+      onError(err);
+    }
   }
 
   return (

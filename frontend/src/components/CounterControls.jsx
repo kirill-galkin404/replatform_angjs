@@ -10,6 +10,10 @@ export default function CounterControls({ onCountChange, onError }) {
   const numericStep = Number(step);
 
   async function handleIncrement() {
+    if (!Number.isFinite(numericStep)) {
+      onError({ message: '"by" must be a finite integer', code: 'INVALID_STEP', field: 'by' });
+      return;
+    }
     try {
       const data = await increment(numericStep);
       onCountChange(data.count);
@@ -20,6 +24,10 @@ export default function CounterControls({ onCountChange, onError }) {
   }
 
   async function handleDecrement() {
+    if (!Number.isFinite(numericStep)) {
+      onError({ message: '"by" must be a finite integer', code: 'INVALID_STEP', field: 'by' });
+      return;
+    }
     try {
       const data = await decrement(numericStep);
       onCountChange(data.count);

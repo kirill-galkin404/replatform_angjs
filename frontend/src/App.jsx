@@ -29,7 +29,7 @@ export default function App() {
 
       <ErrorBanner error={error} />
 
-      <History />
+      <History onError={setError} />
     </div>
   );
 }

@@ -27,6 +27,6 @@ cd frontend && npm install && npm run build
 |--------|------|------|----------|
 | GET | `/count` | — | `{count}` |
 | POST | `/inc` | `{by?}` | `{count}` |
-| POST | `/dec` | — | `{count}` |
+| POST | `/dec` | `{by?}` | `{count}` |
 | POST | `/reset` | — | `{count}` |
 | GET | `/history` | — | `[{t,op,val}]` |

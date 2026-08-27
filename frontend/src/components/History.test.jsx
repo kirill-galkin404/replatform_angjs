@@ -15,7 +15,7 @@ describe('History', () => {
       { t, op: 'dec', val: 0 },
     ]);
 
-    render(<History />);
+    render(<History onError={vi.fn()} />);
     fireEvent.click(screen.getByText('show history'));
 
     await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(2));
@@ -26,5 +26,18 @@ describe('History', () => {
     expect(items[0].textContent).toContain('1');
     expect(items[1].textContent).toContain('dec');
     expect(items[1].textContent).toContain('0');
+  });
+
+  it('surfaces a failed history fetch via onError instead of crashing', async () => {
+    const apiError = Object.assign(new Error('Network request failed'), {
+      code: 'NETWORK_ERROR',
+    });
+    vi.spyOn(counterClient, 'getHistory').mockRejectedValue(apiError);
+    const onError = vi.fn();
+
+    render(<History onError={onError} />);
+    fireEvent.click(screen.getByText('show history'));
+
+    await waitFor(() => expect(onError).toHaveBeenCalledWith(apiError));
   });
 });
