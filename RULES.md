@@ -148,7 +148,7 @@ below).
 
 | Situation | HTTP status | Response body | Source |
 |---|---|---|---|
-| Unmatched route (any method/path not registered) | `404` | `{error: 'Not Found', code: 'NOT_FOUND'}` | `backend/server.js:97-99`; test: `not-found.test.js:16-22`, `reset.test.js:36-40` (old `/rese` path) |
+| Unmatched route (any method/path not registered) | `404` | `{error: 'Not Found', code: 'NOT_FOUND'}` | `backend/server.js:97-99`; test: `not-found.test.js:16-22`, `reset.test.js:36-41` (old `/rese` path) |
 | `ValidationError` thrown anywhere in a route handler | the error's own `status` field (all current throw sites use `400`) | `{error: err.message, code: err.code[, field: err.field]}` — e.g. `{error: '"by" is required', code: 'FIELD_REQUIRED', field: 'by'}` | `backend/server.js:103-109`; error construction: `backend/validators.js:30,36,40,46,50,54`, `backend/server.js:77` |
 | Non-`ValidationError` error with an upstream 4xx `status`/`statusCode` (e.g. `body-parser`'s JSON `SyntaxError`, which sets `err.status = 400`) | that upstream status (observed: `400`) | `{error: 'Bad Request', code: 'BAD_REQUEST'}` — the upstream error's own message/detail is discarded | `backend/server.js:111-117`; test: `malformed-json.test.js:16-24` ("malformed JSON body on POST /inc is reported as a 4xx client error, not a 500") |
 | Any other error (no `ValidationError`, no 4xx `status`/`statusCode` — e.g. a `fs.writeFileSync` failure inside `save()`) | `500` | `{error: 'Internal Server Error', code: 'INTERNAL_ERROR'}` | `backend/server.js:118`; test: `error-handling.test.js:12-20` ("a save()/fs failure is translated into a structured 5xx JSON response, not a crash or stack trace") |
