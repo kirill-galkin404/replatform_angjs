@@ -119,6 +119,19 @@ describe('App', () => {
     await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(2));
   });
 
+  it('renders the server error inline when a history fetch fails', async () => {
+    mockFetchSequence([
+      { status: 200, body: { count: 0 } },
+      { status: 500, body: { error: 'Internal Server Error', code: 'INTERNAL_ERROR' } }
+    ]);
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('0')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('show history'));
+
+    await waitFor(() => expect(screen.getByText('Internal Server Error')).toBeInTheDocument());
+  });
+
   it('renders the server error inline when a call fails', async () => {
     mockFetchSequence([
       { status: 200, body: { count: 0 } },

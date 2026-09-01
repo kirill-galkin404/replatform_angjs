@@ -38,7 +38,7 @@ function App() {
         </div>
       )}
 
-      <HistoryPanel />
+      <HistoryPanel onError={setError} />
     </div>
   );
 }

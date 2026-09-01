@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import * as api from '../api.js';
 
-function HistoryPanel() {
+function HistoryPanel({ onError }) {
   const [history, setHistory] = useState(null);
 
   function handleShowHistory() {
-    api.getHistory().then(setHistory);
+    api.getHistory().then(setHistory, onError);
   }
 
   return (
