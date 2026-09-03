@@ -19,6 +19,11 @@ cd backend && npm install && npm start
 - Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
 - Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
 
+## Documentation
+See [RULES.md](RULES.md) for the authoritative statement of this app's
+business rules (step validation, mutation-operation semantics, counter-state
+invariants, and the error-response contract).
+
 ## API
 | Method | Path | Body | Response |
 |--------|------|------|----------|
