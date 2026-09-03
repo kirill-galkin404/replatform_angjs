@@ -106,10 +106,14 @@ any body key besides `by`.)*
   floor at zero. The frontend renders the `.neg` CSS class on the counter
   display when `count < 0` (`frontend/index.html`), confirming negative
   values are an expected, styled state rather than an error condition.
-  *(unverified against `backend/test/*.test.js` — no backend test asserts a
-  negative `count` is accepted; behavior follows from `/dec` having no lower
-  bound in `backend/server.js:61-71` and no floor check in
-  `backend/validators.js`.)*
+  *(verified indirectly: `backend/test/dec.test.js`'s first test starts from
+  a freshly-booted `count = 0` and asserts `POST /dec {by:3}` returns a count
+  of `before.body.count - 3` (i.e. `-3`); that assertion would fail if
+  `/dec` floored `count` at zero, so the passing suite depends on — and
+  thereby confirms — the no-floor-at-zero behavior, even though no test
+  names "negative count" explicitly. Behavior is implemented in
+  `backend/server.js:61-71`, which has no lower bound, and
+  `backend/validators.js`, which has no floor check.)*
 - `history` is an append-only log of `{t, op, val}` entries; entries are
   never removed or mutated after being pushed, and `GET /history` returns
   the full log. *(verified indirectly: every mutation test in
@@ -141,23 +145,34 @@ distinct 404 rule for unmatched routes:
 2. **Other 4xx** (e.g. body-parser's JSON `SyntaxError`, which sets
    `err.status = 400`): responds `400` with a fixed body
    `{error: 'Bad Request', code: 'BAD_REQUEST'}`, regardless of the
-   upstream error's own message. *(verified: `backend/test/malformed-
-   json.test.js` — "malformed JSON body on POST /inc is reported as a 4xx
-   client error, not a 500".)*
+   upstream error's own message. *(the 4xx-not-500 status is verified:
+   `backend/test/malformed-json.test.js` — "malformed JSON body on POST
+   /inc is reported as a 4xx client error, not a 500" asserts
+   `res.status` is in `[400,500)` and that `res.body.error`/`res.body.code`
+   are present; the exact fixed strings `'Bad Request'`/`'BAD_REQUEST'` are
+   not asserted by any test and are confirmed instead by code inspection of
+   `backend/server.js:115`.)*
 3. **Everything else** (unexpected exceptions, e.g. a filesystem error from
    `save()`): responds `500` with `{error: 'Internal Server Error', code:
    'INTERNAL_ERROR'}`, and never leaks a stack trace or file path in the
-   response body. *(verified: `backend/test/error-handling.test.js` — "a
-   save()/fs failure is translated into a structured 5xx JSON response, not
-   a crash or stack trace", which explicitly asserts the response body
-   contains neither `.js:` nor `at `.)*
+   response body. *(the 500 status and the no-stack-trace-leak guarantee
+   are verified: `backend/test/error-handling.test.js` — "a save()/fs
+   failure is translated into a structured 5xx JSON response, not a crash
+   or stack trace" asserts `res.status === 500` and that the response body
+   contains neither `.js:` nor `at `; the exact fixed strings
+   `'Internal Server Error'`/`'INTERNAL_ERROR'` are not asserted by any
+   test and are confirmed instead by code inspection of
+   `backend/server.js:118`.)*
 4. **Unmatched routes** (no route matches, handled by the dedicated 404
    middleware registered before the error handler): responds `404` with
-   `{error: 'Not Found', code: 'NOT_FOUND'}`. *(verified:
+   `{error: 'Not Found', code: 'NOT_FOUND'}`. *(the 404 status is verified:
    `backend/test/not-found.test.js` — "GET /this-route-does-not-exist
-   returns 404 with a structured JSON body"; `backend/test/reset.test.js` —
-   "the old /rese path no longer exists and is handled by the 404
-   handler".)*
+   returns 404 with a structured JSON body" and `backend/test/reset.test.js`
+   — "the old /rese path no longer exists and is handled by the 404
+   handler" both assert `res.status === 404` and truthy `res.body.error`/
+   `res.body.code`; the exact fixed strings `'Not Found'`/`'NOT_FOUND'` are
+   not asserted by any test and are confirmed instead by code inspection of
+   `backend/server.js:98`.)*
 
 ## Keeping this current
 
