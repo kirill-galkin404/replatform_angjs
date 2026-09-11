@@ -63,3 +63,14 @@ def load(db_file=None):
         return obj.get("count", 0), obj.get("history", [])
     except (OSError, ValueError):
         return 0, []
+
+
+def hydrate(db_file=None):
+    """Boot-time entry point: load initial (count, history) state.
+
+    Thin wrapper over load() so application startup (see R-0016) has an
+    obviously-named function to call; missing, unreadable, or corrupt-JSON
+    db_file all silently fall back to (0, []) with no exception raised.
+    """
+
+    return load(db_file)
