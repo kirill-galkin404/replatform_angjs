@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import storage
 from app.counter import CounterState
 from app.errors import register_error_handlers
+from app.validators import ValidationError
 
 DB_FILE = os.environ.get("DB_FILE", "./data.json")
 
@@ -40,12 +41,23 @@ async def _read_json_body(request: Request):
     An empty body is not valid JSON on its own; Node's body-parser leaves
     req.body as {} for an absent/empty body, so we replicate that here
     rather than letting an empty body raise json.JSONDecodeError.
+
+    Node's body-parser also runs in its default 'strict' mode, which
+    rejects a syntactically-valid but top-level-scalar JSON body (e.g. a
+    bare `42` or `"foo"`) with a 400 - only objects and arrays are accepted
+    as a JSON request body. We reproduce that here so a non-object body
+    is rejected the same way, instead of silently degrading `by` to None.
     """
 
     raw = await request.body()
     if not raw:
         return {}
-    return await request.json()
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise ValidationError(
+            "BAD_REQUEST", None, "Request body must be a JSON object", 400
+        )
+    return body
 
 
 @app.get("/count")
@@ -56,23 +68,21 @@ async def get_count():
 @app.post("/inc")
 async def post_inc(request: Request):
     body = await _read_json_body(request)
-    by = body.get("by") if isinstance(body, dict) else None
-    count = state.inc(by=by, db_file=DB_FILE)
+    count = state.inc(by=body.get("by"), db_file=DB_FILE)
     return {"count": count}
 
 
 @app.post("/dec")
 async def post_dec(request: Request):
     body = await _read_json_body(request)
-    by = body.get("by") if isinstance(body, dict) else None
-    count = state.dec(by=by, db_file=DB_FILE)
+    count = state.dec(by=body.get("by"), db_file=DB_FILE)
     return {"count": count}
 
 
 @app.post("/reset")
 async def post_reset(request: Request):
     body = await _read_json_body(request)
-    count = state.reset(body=body if isinstance(body, dict) else {}, db_file=DB_FILE)
+    count = state.reset(body=body, db_file=DB_FILE)
     return {"count": count}
 
 

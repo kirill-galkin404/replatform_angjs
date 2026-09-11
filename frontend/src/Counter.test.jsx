@@ -38,7 +38,44 @@ describe('Counter', () => {
     const [url, options] = global.fetch.mock.calls[1];
     expect(url).toMatch(/\/inc$/);
     expect(options.method).toBe('POST');
-    expect(JSON.parse(options.body)).toEqual({ by: 5 });
+    // The raw typed value is sent as-is (not coerced with Number()), so the
+    // backend's own validator is the single source of truth for what counts
+    // as a valid step - see the "invalid step" test below.
+    expect(JSON.parse(options.body)).toEqual({ by: '5' });
+  });
+
+  test('an empty or non-numeric step is sent as-is and a validation error from the backend is surfaced, not silently swallowed', async () => {
+    global.fetch
+      .mockImplementationOnce(() => jsonResponse({ count: 0 })) // initial GET /count
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: '"by" must be a finite integer', code: 'INVALID_STEP', field: 'by' }),
+        })
+      ); // POST /inc rejected by the backend validator
+
+    render(<Counter />);
+
+    await waitFor(() => expect(screen.getByText('0')).toBeInTheDocument());
+
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'abc' } });
+
+    fireEvent.click(screen.getByText('+'));
+
+    const [, options] = await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      return global.fetch.mock.calls[1];
+    });
+    // The invalid text is forwarded verbatim - it is never coerced into
+    // NaN/null client-side, which would let an invalid step silently
+    // through as a default/zero mutation instead of being rejected.
+    expect(JSON.parse(options.body)).toEqual({ by: 'abc' });
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/finite integer/i);
+    // count must not have silently changed
+    expect(screen.getByText('0')).toBeInTheDocument();
   });
 
   test('decrement sends POST /dec with an empty body and updates the displayed count', async () => {

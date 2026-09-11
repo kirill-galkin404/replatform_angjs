@@ -46,7 +46,7 @@ export default function Counter() {
       const response = await fetch(`${API_BASE_URL}/inc`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ by: Number(step) }),
+        body: JSON.stringify({ by: step }),
       });
       if (!response.ok) {
         setError(await parseErrorMessage(response, 'Failed to increment'));

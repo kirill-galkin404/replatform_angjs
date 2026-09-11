@@ -57,11 +57,17 @@ def validate_step(value, *, required: bool = False):
     if isinstance(value, (int, float)):
         num = value
     else:
-        # Mirror JS's permissive `Number(value)` coercion of numeric strings.
+        # Mirror JS's permissive `Number(value)` coercion of numeric strings,
+        # including its acceptance of 0x/0o/0b-prefixed hex/octal/binary
+        # literals (e.g. Number('0x10') === 16), which float() alone does
+        # not parse.
         try:
             num = float(value)
         except ValueError:
-            num = float("nan")
+            try:
+                num = float(int(value.strip(), 0))
+            except (ValueError, TypeError):
+                num = float("nan")
 
     if math.isnan(num) or math.isinf(num):
         raise ValidationError(

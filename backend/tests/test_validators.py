@@ -60,3 +60,18 @@ def test_validate_step_rejects_beyond_min_max_boundary():
         validate_step(-1_000_001)
     with pytest.raises(ValidationError):
         validate_step(1_000_001)
+
+
+def test_validate_step_accepts_hex_octal_binary_string_literals():
+    # Mirrors JS's Number('0x10') === 16 (Number() accepts 0x/0o/0b-prefixed
+    # numeric string literals, unlike Python's float()).
+    assert validate_step("0x10") == 16
+    assert validate_step("0o17") == 15
+    assert validate_step("0b101") == 5
+
+
+def test_validate_step_still_rejects_genuinely_invalid_strings():
+    with pytest.raises(ValidationError):
+        validate_step("0xzz")
+    with pytest.raises(ValidationError):
+        validate_step("abc")

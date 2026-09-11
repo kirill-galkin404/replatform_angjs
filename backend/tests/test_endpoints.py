@@ -97,3 +97,25 @@ def test_healthz_always_200(client):
     res = client.get("/healthz")
     assert res.status_code == 200
     assert res.json() == {"status": "ok"}
+
+
+def test_post_inc_with_top_level_scalar_body_returns_400(client):
+    # Node's body-parser runs in its default 'strict' mode, which rejects a
+    # syntactically-valid but non-object/array top-level JSON body (e.g. a
+    # bare number) with a 400 instead of silently treating it as an absent
+    # body. before_count confirms nothing was mutated.
+    before = client.get("/count").json()["count"]
+    res = client.post("/inc", data="42", headers={"Content-Type": "application/json"})
+    assert res.status_code == 400
+    body = res.json()
+    assert body["error"]
+    assert body["code"] == "BAD_REQUEST"
+    assert client.get("/count").json()["count"] == before
+
+
+def test_post_reset_with_top_level_scalar_body_returns_400(client):
+    res = client.post(
+        "/reset", data='"not-an-object"', headers={"Content-Type": "application/json"}
+    )
+    assert res.status_code == 400
+    assert res.json()["code"] == "BAD_REQUEST"
