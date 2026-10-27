@@ -1,23 +1,49 @@
 # replatform_angjs
 
-An intentionally "dirty" legacy counter — a test subject for a code rewriting/refactoring tool.
+A small counter app: a React frontend talking to an Express backend. It is a test subject for a code rewriting/refactoring tool.
 
-## Stack (deliberately outdated)
-- **frontend/** — AngularJS 1.2 (CDN) + jQuery, logic in the controller, `.success()`, jQuery DOM manipulation mixed with Angular.
-- **backend/** — Express 4, `var`, global state, synchronous file "DB" (`data.json`), manual CORS, zero validation/error handling.
+## Stack
+- **frontend/**: React 18 built with Vite, tested with Vitest + Testing Library (jsdom).
+- **backend/**: Express 4, `var`, global state, synchronous file "DB" (`data.json`, path overridable with `DB_FILE`), manual CORS (`Access-Control-Allow-Origin: *`).
+
+## Prerequisites
+- Node.js and npm.
 
 ## Running
+The backend listens on `PORT` (default `4000`) and keeps its state in `data.json`.
+
 ```bash
-# backend (port 4000)
+# backend (port 4000; override with PORT=5000 npm start)
 cd backend && npm install && npm start
 
-# frontend — open frontend/index.html in a browser
-# (or any static server, e.g. `npx http-server frontend`)
+# frontend (in a second terminal)
+cd frontend
+npm install
+npm run dev       # Vite dev server with hot reload
+npm run build     # production build, output in frontend/dist/
+npm run preview   # serve the production build locally
+npm test          # Vitest, runs once
 ```
 
+The frontend calls the backend at `http://localhost:4000` by default, so start the backend first.
+
+## Configuration
+`VITE_API_BASE_URL` sets the backend URL the frontend calls. It defaults to `http://localhost:4000`.
+
+It is read at **build time** (when the dev server starts or when `npm run build` runs) and baked into the bundle:
+
+```bash
+VITE_API_BASE_URL=https://api.example.com npm run build
+```
+
+The old `API_BASE_URL` variable and the post-build `dist/env.js` override are no longer used. To change the URL, rebuild; do not edit `dist/`.
+
+## Frontend notes
+- The step input value is sent as-is to `POST /inc`; `POST /dec` and `POST /reset` send `{}`. The client does no validation; the backend validates the step and returns structured errors.
+- History entries are rendered as React text nodes, so values are escaped.
+
 ## What's "dirty" here (room for improvement)
-- Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
-- Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
+- Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, no routers/layers, `res.send(200)`.
 
 ## API
 | Method | Path | Body | Response |
