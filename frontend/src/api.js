@@ -4,6 +4,7 @@ export function getApiBase() {
 
 async function request(path, options) {
   const res = await fetch(getApiBase() + path, options);
+  if (!res.ok) throw new Error(`Request to ${path} failed with status ${res.status}`);
   return res.json();
 }
 

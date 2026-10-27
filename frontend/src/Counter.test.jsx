@@ -148,4 +148,18 @@ describe('Counter', () => {
     await renderLoaded({ count: 5 });
     expect(screen.getByText('5').classList.contains('neg')).toBe(false);
   });
+  it('keeps the count and history unchanged when the backend returns an error', async () => {
+    await renderLoaded({ count: 4 });
+    fetchMock.mockImplementation(async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({ error: 'bad step', code: 'INVALID_STEP' }),
+    }));
+    fireEvent.click(screen.getByText('+'));
+    fireEvent.click(screen.getByText('show history'));
+    await waitFor(() => expect(callsTo('/history')).toHaveLength(1));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(screen.getByText('4').id).toBe('big');
+    expect(screen.queryByText('History:')).toBeNull();
+  });
 });

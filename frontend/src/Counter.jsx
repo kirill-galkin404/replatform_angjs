@@ -10,13 +10,13 @@ export function Counter() {
     let active = true;
     api.getCount().then((data) => {
       if (active) setCount(data.count);
-    });
+    }).catch(() => {});
     return () => {
       active = false;
     };
   }, []);
 
-  const update = (promise) => promise.then((data) => setCount(data.count));
+  const update = (promise) => promise.then((data) => setCount(data.count)).catch(() => {});
 
   const onInc = () => update(api.inc(step));
   const onDec = () => update(api.dec());
@@ -26,7 +26,7 @@ export function Counter() {
     }
   };
   const onHistory = () => {
-    api.getHistory().then((data) => setHistory(data));
+    api.getHistory().then((data) => setHistory(data)).catch(() => {});
   };
 
   return (
