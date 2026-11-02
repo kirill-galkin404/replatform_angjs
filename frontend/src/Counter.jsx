@@ -48,7 +48,7 @@ export default function Counter() {
         <button onClick={handleInc}>+</button>
       </div>
 
-      <div>
+      <div className="inline-row">
         <button onClick={handleReset}>reset</button>
       </div>
     </>

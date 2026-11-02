@@ -13,7 +13,7 @@ export default function History() {
 
   return (
     <>
-      <div>
+      <div className="inline-row">
         <button onClick={handleShow}>show history</button>
       </div>
 
