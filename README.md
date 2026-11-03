@@ -1,23 +1,63 @@
 # replatform_angjs
 
-An intentionally "dirty" legacy counter — a test subject for a code rewriting/refactoring tool.
+A small counter app: a React (Vite) frontend talking to an Express backend.
 
-## Stack (deliberately outdated)
-- **frontend/** — AngularJS 1.2 (CDN) + jQuery, logic in the controller, `.success()`, jQuery DOM manipulation mixed with Angular.
-- **backend/** — Express 4, `var`, global state, synchronous file "DB" (`data.json`), manual CORS, zero validation/error handling.
+- **frontend/** — React 18 + Vite 5, tested with Vitest and Testing Library.
+- **backend/** — Express 4 with a file-backed store (`data.json`).
 
-## Running
+## Prerequisites
+- Node.js 18 or newer (required by Vite 5) and npm.
+
+## Running the backend (port 4000)
 ```bash
-# backend (port 4000)
 cd backend && npm install && npm start
-
-# frontend — open frontend/index.html in a browser
-# (or any static server, e.g. `npx http-server frontend`)
 ```
 
-## What's "dirty" here (room for improvement)
-- Backend: global `count`/`history`, `readFileSync`/`writeFileSync` on every request, `parseInt` without validation, magic strings, no routers/layers, `res.send(200)`.
-- Frontend: business logic in `$scope`, deprecated `$http().success()`, hardcoded `API`, `loadHistory()` via jQuery bypassing Angular, inline styles, `confirm()`.
+## Running the frontend
+All commands are run from `frontend/`.
+```bash
+cd frontend
+npm install
+npm run dev       # dev server with hot reload
+npm run build     # production build into dist/
+npm run preview   # serve the built dist/ locally
+npm test          # run the test suite (Vitest)
+```
+
+`npm test` includes an integration test (`src/api.integration.test.js`) that starts the real backend, so install the backend dependencies first: `npm --prefix backend ci` (or `npm install` inside `backend/`).
+
+## Configuration: `VITE_API_BASE_URL`
+The frontend reads the backend address from `VITE_API_BASE_URL`; when unset it defaults to `http://localhost:4000`.
+
+This value is read at **build time** and embedded in the bundle. Set it before `npm run build`; changing it later requires a rebuild.
+```bash
+VITE_API_BASE_URL=https://api.example.com npm run build
+```
+It also applies to `npm run dev` via the environment or a `.env` / `.env.local` file in `frontend/` (see `frontend/.env.example`).
+
+The build output in `dist/` uses relative asset paths (`base: './'`), so it can be served from a sub-path.
+
+### Migration note
+The previous build script and its `API_BASE_URL` variable are gone. Any hosting or CI that set `API_BASE_URL` must now set `VITE_API_BASE_URL` instead, and build with `npm run build`; the value is baked in at build time.
+
+## Project structure
+```
+frontend/
+├── index.html
+├── vite.config.js
+├── package.json
+├── .env.example
+└── src/
+    ├── main.jsx            # entry point
+    ├── App.jsx             # top-level component
+    ├── api.js              # backend client (uses VITE_API_BASE_URL)
+    ├── styles.css
+    ├── setupTests.js
+    └── components/         # src/components
+        ├── Counter.jsx
+        └── History.jsx
+```
+Tests sit next to the code as `*.test.js(x)`.
 
 ## API
 | Method | Path | Body | Response |
@@ -27,3 +67,6 @@ cd backend && npm install && npm start
 | POST | `/dec` | — | `{count}` |
 | POST | `/reset` | — | `{count}` |
 | GET | `/history` | — | `[{t,op,val}]` |
+
+## Known behaviour / open question
+The minus button posts an empty body to `/dec`, so the step input does not affect decrement. This is preserved as-is from before the rewrite. Open question for the operator: should decrement also send the step?
