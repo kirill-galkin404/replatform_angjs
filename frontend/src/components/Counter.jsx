@@ -48,9 +48,7 @@ export default function Counter() {
         <button onClick={inc}>+</button>
       </div>
 
-      <div>
-        <button onClick={reset}>reset</button>
-      </div>
+      <button onClick={reset}>reset</button>
     </>
   );
 }

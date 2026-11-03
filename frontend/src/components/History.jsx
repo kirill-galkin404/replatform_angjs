@@ -13,7 +13,7 @@ export default function History() {
   }
 
   return (
-    <div>
+    <>
       <button onClick={loadHistory}>show history</button>
       <div id="hist">
         {entries && (
@@ -27,6 +27,6 @@ export default function History() {
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }
