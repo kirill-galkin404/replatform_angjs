@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as api from './api.js';
+import History from './History.jsx';
 
 export default function Counter() {
   const [count, setCount] = useState(0);
@@ -63,7 +64,7 @@ export default function Counter() {
         <button onClick={handleReset}>reset</button>
       </div>
 
-      {/* History region (#hist) is added below the buttons in a later step */}
+      <History onError={setError} />
     </>
   );
 }
