@@ -1,8 +1,9 @@
 #!/bin/sh
-# Minimal "build": copies static assets into dist/ and writes env.js so the
-# API base URL can be configured per-environment via the API_BASE_URL env var
-# instead of being hardcoded in app.js.
+# Builds the React app with Vite into dist/. The API base URL is configured
+# per-environment via the API_BASE_URL env var (default http://localhost:4000);
+# it is mapped to VITE_API_BASE_URL and baked into the bundle at build time.
 set -e
-mkdir -p dist
-cp index.html app.js dist/
-printf 'window.API_BASE_URL = "%s";\n' "${API_BASE_URL:-http://localhost:4000}" > dist/env.js
+cd "$(dirname "$0")"
+export VITE_API_BASE_URL="${API_BASE_URL:-http://localhost:4000}"
+npm ci --no-audit --no-fund
+npm run build
