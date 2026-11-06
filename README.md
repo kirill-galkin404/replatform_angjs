@@ -78,7 +78,7 @@ The backend URL defaults to `http://localhost:4000`.
   VITE_API_BASE_URL=https://api.example.com
   ```
 
-- `API_BASE_URL` is consumed only by `frontend/build.sh`, which maps it to `VITE_API_BASE_URL` (defaulting to `http://localhost:4000`) before building.
+- `API_BASE_URL` is consumed only by `frontend/build.sh`, which maps it to `VITE_API_BASE_URL` before building. If `API_BASE_URL` is unset, an existing `VITE_API_BASE_URL` (shell or `frontend/.env.local`) is used, otherwise `http://localhost:4000`.
 
 There is no runtime environment injection: the URL is baked into the bundle at build time, so changing it requires rebuilding.
 
